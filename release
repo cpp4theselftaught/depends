@@ -1,0 +1,22 @@
+#! /bin/sh
+PACKAGE="depends"
+source project/gnu/version
+
+if ! [ -z "$(cg-diff)" ]; then
+	echo You should commit everything first!
+	exit 1
+fi
+
+PREFIX="${PACKAGE}-${BRANCH_VERSION}"
+cg-tag -f -s ${BRANCH_VERSION}
+pushd lib
+doxygen ../project/doxygen/Depends.dox
+cd htdocs
+mv html ${PREFIX}-doc
+tar cjvf ${PREFIX}-doc.tar.bz2 ${PREFIX}-doc
+mv ${PREFIX}-doc.tar.bz2 ../..
+popd
+git-archive --format=tar --prefix="${PREFIX}/" ${BRANCH_VERSION} | bzip2 -c > ${PREFIX}.tar.bz2
+gpg --detach-sign ${PREFIX}-doc.tar.bz2
+gpg --detach-sign ${PREFIX}.tar.bz2
+

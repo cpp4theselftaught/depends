@@ -1,0 +1,248 @@
+2007-02-12	blytkerchan	Documentation fix
+	* lib/Depends/Details/Unlinker.h: fix a link in the documentation
+
+2007-02-11	blytkerhan	repair make install target
+	* lib/Depends/module.mk: repair make install target
+	* project/gnu/Makefile.in.in: ditto
+
+2007-02-10	blytkerchan	disabled serialization by default on GNU
+	* project/gnu/configure.ac.in: disabled serialization by default 
+	* tests/lib/Depends/module.mk: make link options optional
+	* tests/lib/Depends/test3.cc: reflect above
+	* tests/lib/Depends/test4.cc: reflect above
+
+2007-02-09	blytkerchan	adding support for serialization
+	* lib/Depends/DAG.h: add support for serialization
+	* lib/Depends/Depends.h: ditto
+	* lib/Depends/Details/Node.h: ditto
+	* lib/Depends/Details/serialization.hpp: ditto
+	* project/gnu/Makefile.in.in: ditto - optional compilation
+	* project/gnu/configure.ac.in: ditto
+	* project/gnu/version: bump to 2.0.1
+	* project/msvc8/Depends.sln: MSVC-generated - who knows?
+	* project/msvc8/Test_DAG/Test_DAG.vcproj: ditto
+	* project/msvc8/Test_serializeDAG/Test_serializeDAG.vcproj: new file
+	* project/msvc8/Test_serializeDepends/Test_serializeDepends.vcproj:
+	ditto
+	* tests/lib/Depends/module.mk: add support for serialization -
+	optional compilation
+	* tests/lib/Depends/test2.cc: line endings
+	* tests/lib/Depends/test3.cc: new file
+	* tests/lib/Depends/test4.cc: ditto
+
+making things compile on Cygwin
+	* project/gnu/configure.ac.in: allow Boost headers to be elsewhere
+	than in the normal search path
+	* project/gnu/depend.sh: don't expect missing headers to be generated
+
+2007-02-08	blytkerchan	making it compile on Debian GNU/Linux
+	* lib/Depends/DAG.h: changes for G++ 3.4
+	* lib/Depends/Depends.h: ditto
+	* lib/Depends/Details/Unlinker.h: ditto
+	* project/gnu/Makefile.in.in: fixed the way .d files are generated
+	* tests/lib/Depends/module.mk: fixed the way tests are generated
+
+start support for serialization
+	* lib/Depends/Details/serialization.hpp: imported from Vlinder
+	some alterations to reflect what's been done in the last few days
+
+add the Depends class and make a few minor fixes in the DAG class
+	* lib/Depends/DAG.h: minor fixes
+	* lib/Depends/Depends.h: new file
+	* lib/Depends/Details/Unlinker.h: new file
+	* lib/Depends/Details/Visitors.h: new visitor functor
+	* lib/Depends/module.mk: minor fixes
+	* project/msvc8/Depends.sln: addition of Depends class and test
+	* project/msvc8/Test_DAG/Test_DAG.vcproj: msvc8-generated changes (who
+	knows?)
+	* project/msvc8/Test_Depends/Test_Depends.vcproj: new file
+	* tests/lib/Depends/test2.cc: new test case for the new Depends class
+
+2007-02-07	blytkerchan	add MSVC8 project files
+	* project/msvc8/Depends.sln: new file
+	* project/msvc8/Test_DAG/Test_DAG.vcproj: ditto
+
+rename classes etc. to new style
+	* *: rename classes dag to DAG, circular_reference_exception to
+	CircularReferenceException, etc.
+
+2007-01-01	blytkerchan	correct Doxygen doc version
+	* project/doxygen/Depends.dox: correct version
+	
+finish GNU configury + clean-up
+	* lib/Depends/detail/ChangeLog: remove
+	* lib/Depends/module.mk: new file
+	* tests/lib/Depends/module.mk: ditto
+	* project/gnu/Makefile.in.in: adapt to this project
+	* project/gnu/link.mk: ditto
+	* tests/lib/Depends/test.cc: modify include directive for dag.hpp to
+	no longer expect the file in the same directory
+	(test2): add an assertion for the detection of the circular reference
+
+GNU configury etc.
+	* project/gnu/Makefile.in.in: new file, copied from Versie
+	* project/gnu/acx_pthread.m4: ditto
+	* project/gnu/config.guess: ditto
+	* project/gnu/config.sub: ditto
+	* project/gnu/configure.ac.in: ditto
+	* project/gnu/depend.sh: ditto
+	* project/gnu/install-sh: ditto
+	* project/gnu/link.mk: ditto
+	* project/gnu/macros.mk: ditto
+	* project/gnu/rules.mk: ditto
+	* project/gnu/version: ditto
+	* boostrap: ditto
+
+2006-12-30	blytkerchan	license info added
+	* lib/Depends/dag.hpp: add license info
+	* lib/Depends/depends.hpp: ditto
+	* lib/Depends/detail/circular_reference_exception.hpp: ditto
+	* lib/Depends/detail/dag_iterator.hpp: ditto
+	* lib/Depends/detail/dag_node.hpp: ditto
+	* lib/Depends/detail/documentation.hpp: ditto
+	* lib/Depends/detail/node_ptr_sorter.hpp: ditto
+	* lib/Depends/detail/scoped_flag.hpp: ditto
+	* lib/Depends/detail/visitors.hpp: ditto
+	* license.h: new file
+	* licenses/MPL-1.1.txt: ditto
+	* licenses/Optel-1.0.txt: ditto
+	* licenses/gpl.txt: ditto
+
+
+transscribe article into Doxygen doc
+	* lib/Depends/detail/documentation.hpp: new file
+	* doc/article.sxw: remove
+	* doc/ChangeLog: remove and merge into this file
+	
+re-organize and add doxygen documentation
+	* lib/Depends/dag.hpp: move from project root
+	document
+	* lib/Depends/depends.hpp: ditto (both)
+	* detail/ChangeLog: integrate into this file and remove
+	* detail/: move to lib/Depends with all (remaining) content
+	* project/doxygen/Depends.dox: new file
+	* Makefile: remove
+	* readme.txt: ditto
+	* tests/lib/Depends/test.cc: move from project root
+
+2005-10-18	blytkerchan
+bugfix: storing nodes in the dag's vector and taking a pointer to such a node
+invalidated the pointer when sorting
+	* dag.hpp: reflect above throughout the rlc::dag class
+	[dag::nodes_type]: new typedef
+	(~dag): new destructor
+	(insert): allocate the new node dynamically
+	(erase): delete previously allocated node
+
+	* detail/node_ptr_sorter.hpp: new file
+	* detail/dag_iterator.hpp: the vector's iterator now stores a pointer
+	-(as the dag's vector now stores pointers). Reflect that.
+	make the iterators bidirectional
+	* detail/dag_node.hpp [dag_node_value_cmp]: add operator() to compare
+	node pointers
+	[dag_node]: add typedef targets_type
+	* detail/scoped_flag.hpp: work with node pointers
+	* detail/visitors.hpp [dag_node_visitor_empty_functor]: ditto
+	[dag_node_inc_score_functor]: ditto
+	[dag_node_dec_score_functor]: ditto
+	[dag_node_visitor]: ditto
+	* doc/article.sxw: committing first draft
+
+2005-07-14	blytkerchan
+	* circular_reference_exception.hpp: new file
+	* dag_iterator.hpp: ditto
+	* dag_node.hpp: ditto
+	* scoped_flag.hpp: ditto
+	* visitors.hpp: ditto
+	* detail/circular_reference_exception.hpp: new file
+	* detail/dag_iterator.hpp: ditto
+	* detail/dag_node.hpp: ditto
+	* detail/scoped_flag.hpp: ditto
+	* detail/visitors.hpp: ditto
+
+2005-07-15	blytkerchan
+	* Makefile [install]: add target
+
+	* Makefile: rewrite
+	* dag.hpp: new file
+	* depends.hpp: ditto
+	* readme.txt: ditto
+	* test.cc: ditto
+	* dag.c: remove
+	* dag.h: ditto
+	* depends.c: ditto
+	* depends.h: ditto
+	* edge.c: ditto
+	* edge.h: ditto
+	* node.c: ditto
+	* node.h: ditto
+	* vector.c: ditto
+	* vector.h: ditto
+
+2005-05-31	blytkerchan
+	* dag.c (dag_node_new): initialize flags field
+	(dag_node_free): unlink from neighbours before destroying the node
+	(dag_node_unlink): implement
+	(dag_node_visit): ditto
+
+2005-05-23	blytkerchan	re-starting implementation
+	* dag.c: new file
+	* dag.h: ditto
+
+2005-04-28	blytkerchan
+	* depends.c: unfinished debug session
+	* edge.h: ditto
+	* node.c: ditto
+	* node.h: ditto
+	* vector.c: ditto
+	* vector.h: ditto
+
+	* depends.c: split up into many files
+	prepare to change the logic of associating vectors with the DAG:
+	associate them with nodes in stead of edges (to prevent unresolvable
+	dependencies)
+	* depends.h: reflect above
+	* vector.c: new file
+	* vector.h: ditto
+	* node.c: ditto
+	* node.h: ditto
+	* edge.c: ditto
+	* edge.h: ditto
+
+2005-04-23	blytkerchan
+	* depends.c: include assert.h
+	[DEPENDS_VECTOR_FLAG_INVALID]: rename from DEPENDS_VECTOR_INVALID
+	[DEPENDS_VECTOR_FLAG_DONE]: new macro
+	[struct depends_vector_type]: rename flags member from flag
+	[struct depends_type]: new members edges and vectors
+	(dep_new): reflect above
+	[depends_node_visitor_func]: change prototype to take user data
+	(depends_node_visit): reflect above
+	(depends_node_visit_helper): ditto
+	(depends_edge_insert): ditto
+	(depends_edge_new): take the handle to the tracker as param
+	add the new edge to the edges member of the tracker
+	(dep_depends): reflect above signature change
+	reflect change to member name in struct depends_vector_type
+	(dep_blocks): ditto (all)
+	(depends_edge_free): free the list of vectors
+	[struct dep_depends_on_helper_data_type]: new type
+	(dep_depends_on_helper_helper): new function
+	(dep_depends_on_helper): ditto
+	(dep_depends_on): implement
+	(dep_blocking_on_helper): new function
+	(dep_blocking): implement
+	[struct dep_resolve_edge_visitor_data_type]: new type
+	(dep_resolve_retrieve_satisfiable_edge_helper): new function
+	(dep_resolve): start implementation
+	
+2005-04-21	blytkerchan
+	* Makefile: new file
+	* depends.c: continue implementation
+	
+2005-04-16	blytkerchan
+	* depends.c: new file
+	* depends.h (dep_depends): add data parameter
+	(dep_blocks): ditto
+
+	* depends.h: new file
