@@ -37,7 +37,7 @@
 #define _depends_details_iterator_h
 
 #include <iterator>
-#include "Node.h"
+#include "node.hpp"
 
 namespace Depends
 {

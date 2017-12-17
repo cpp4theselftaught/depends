@@ -1,8 +1,8 @@
+#include "../depends.hpp"
 #include <sstream>
 #include <iostream>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <Depends/Depends.h>
 
 struct S
 {

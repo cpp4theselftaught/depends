@@ -36,8 +36,8 @@
  * to include this file and build upon the Depends::DAG class contained in it. By 
  * including this file, you will have access to the complete Depends::DAG class and
  * all its dependencies, so you won't have to include anything else. */
-#ifndef _depends_dag_h
-#define _depends_dag_h
+#ifndef depends_dag_hpp
+#define depends_dag_hpp
 
 #include <vector>
 #include <algorithm>
@@ -45,16 +45,16 @@
 
 #if DEPENDS_SUPPORT_SERIALIZATION
 namespace boost { namespace serialization { class access; } }
-#include "Details/serialization.hpp"
+#include "details/serialization.hpp"
 #endif
 
-#include "Details/Iterator.h"
-#include "Details/Node.h"
-#include "Details/CircularReferenceException.h"
-#include "Details/ScopedFlag.h"
-#include "Details/Visitors.h"
-#include "Details/SortPred.h"
-#include "Details/Unlinker.h"
+#include "details/iterator.hpp"
+#include "details/node.hpp"
+#include "details/circularreferenceexception.hpp"
+#include "details/scopedflag.hpp"
+#include "details/visitors.hpp"
+#include "details/sortpred.hpp"
+#include "details/unlinker.hpp"
 
 namespace Depends
 {

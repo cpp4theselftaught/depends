@@ -1,5 +1,5 @@
+#include "../depends.hpp"
 #include <cassert>
-#include <Depends/Depends.h>
 #include <boost/tuple/tuple.hpp>
 
 void test1()

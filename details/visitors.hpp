@@ -37,8 +37,8 @@
 #define _depends_details_visitors_h
 
 #include <iterator>
-#include "ScopedFlag.h"
-#include "CircularReferenceException.h"
+#include "scopedflag.hpp"
+#include "circularreferenceexception.hpp"
 
 namespace Depends
 {

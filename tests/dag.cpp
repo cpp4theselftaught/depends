@@ -1,8 +1,8 @@
+#include "../dag.hpp"
 #include <vector>
 #include <cassert>
 #include <algorithm>
 #include <iostream>
-#include <Depends/DAG.h>
 
 void test1(void)
 {

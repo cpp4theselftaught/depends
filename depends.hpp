@@ -32,13 +32,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /** \file Depends.h A simple, generic dependency tracker. */
-#ifndef _depends_depends_h
-#define _depends_depends_h
+#ifndef depends_depends_hpp
+#define depends_depends_hpp
 
+#include "dag.hpp"
 #include <algorithm>
 #include <cassert>
 #include <set>
-#include "DAG.h"
 
 namespace Depends
 {
