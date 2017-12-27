@@ -31,22 +31,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/** \file Details/ScopedFlag.h Definition of the DAG's scoped flag.
+/** \file details/scopedflag.hpp Definition of the DAG's scoped flag.
  * You will normally never want to include this file directly, as it is included by DAG.h */
-#ifndef _depends_details_scopedflag_h
-#define _depends_details_scopedflag_h
+#ifndef depends_details_scopedflag_hpp
+#define depends_details_scopedflag_hpp
 
 namespace Depends
 {
 	namespace Details
 	{
 		//! Helper class that sets and unsets a flag using RAII
-		template <class NodeType, typename FlagType = unsigned int>
+		template < class NodeType, typename FlagType = unsigned int >
 		struct ScopedFlag
 		{
 			ScopedFlag(NodeType * node, FlagType flag)
-				: node_(node),
-				  flag_(flag)
+				: node_(node)
+				, flag_(flag)
 			{
 				node->flags_ |= flag;
 			}
@@ -57,7 +57,7 @@ namespace Depends
 				node_->flags_ &= ~flag_;
 			}
 
-			NodeType * node_;
+			NodeType *node_;
 			FlagType flag_;
 		};
 	}

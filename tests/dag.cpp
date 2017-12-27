@@ -6,10 +6,10 @@
 
 void test1(void)
 {
-	Depends::DAG<int> dag;
-	std::vector<int> v;
+	Depends::DAG< int > dag;
+	std::vector< int > v;
 	
-	for (int i = 0; i < 10/*0*/; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		dag.insert(i);
 		v.push_back(i);
