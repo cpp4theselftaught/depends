@@ -31,7 +31,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/** \file Details/documentation.hpp Doxygen's main page.
+/** \file details/documentation.hpp Doxygen's main page.
  * You will normally never want to include this file: there's nothing here. */
 /** \mainpage
  * The Depends library provides a full-fledged generic dependency tracker
@@ -65,9 +65,7 @@
  * \section basic_principles The basic principles
  * Tracking the dependencies between a number of objects, events or whatever
  * basically amounts to constructing a Directed Acyclic Graph (DAG) with the
- * dependencies in question. A DAG carries its name very well: it means "day"
- * in dutch and most dependencies are tracked at daytime. Such feeble attempts
- * at humor aside, a DAG is, in deed, a collection of directed edges between
+ * dependencies in question. A DAG is a collection of directed edges between
  * nodes (or vertices, if you prefer) which, by definition, is acyclic. This
  * means that if there exists a path (of edges) that goes from node A to node
  * B, there shall not be a path that goes from node B to node A.
@@ -126,17 +124,16 @@
  * they are not already linked in the opposite direction. To do this, we flag 
  * the source node as "visited" and start visiting the DAG from the target node.
  * If, during the visit, we run into a node that has already been marked as 
- * visited, we have found a * circular path in the DAG . and therefore a circular 
+ * visited, we have found a circular path in the DAG, and therefore a circular 
  * dependency. Note, however, that there may be more than one path to a node 
  * (and we may want to repeat the visiting process) so once all targets of a node 
  * have been visited, we clear the flag that marks it as visited.
  *
- * To do all this, we'll need two new classes (initially):
- * \link Depends::Details::NodeVisitor Details::NodeVisitor \endlink and 
- * \link Depends::Details::ScopedFlag Details::ScopedFlag \endlink. The latter is
- * really very simple: it just sets a flag (which is an unsigned integer by
+ * To do all this, we add a \link Depends::Details::Node::visit visit \endlink 
+ * function to the Node class and \link Depends::Details::ScopedFlag Details::ScopedFlag \endlink.
+ * The latter is really very simple: it just sets a flag (which is an unsigned integer by
  * default) on construction and clears the flag on destruction:
- * \dontinclude Depends/Details/ScopedFlag.h
+ * \dontinclude details/scopedflag.hpp
  * \skip template
  * \until };
  * Note that both the node type and the flag type are template parameters:
@@ -145,23 +142,33 @@
  * dislike of writing the same code twice and generic programming helps avoid
  * it - so why not use it?
  *
- * The visitor class is a wee bit more complicated, but not much: it needs a
- * helper class to be generic enough to use for other things than just checking
- * the DAG's invariant - i.e. it needs some functor that tells it to do
- * something. By default, it will use the associated
- * \link Depends::Details::EmptyFunctor EmptyFunctor \endlink class.
+ * The visit function is a wee bit more complicated, but not much: it needs to
+ * be told about a function to call, and a bit of data to pass to that function,
+ * but at the time of coding it, we don't need to define either with any type of
+ * precision: we just need some function type \c F that we can pass stuff to.
+ * By default, we'll pass it an empty no-op function.
  *
- * The visitor will call the functor passed to it for the node it is currently
+ * \dontinclude details/node.hpp
+ * \skip visit
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ * \until }
+ *
+ * The visit method will call the function passed to it for the node it is currently
  * visiting and subsequently recursively call itself on any node pointed to by
- * the node it is visiting. In this call, it will set a scoped "visited" flag
+ * the node being visited. In this call, it will set a scoped "visited" flag
  * on the node it is currently in, which will be used for tracking circular
  * dependencies. If such a dependency is found, an exception is thrown.
  *
- * One interesting note is that the functor may not be called at all: if its
+ * One interesting note is that the function may not be called at all: if its
  * bool operator returns false (which may be the case if the functor is
- * actually a pointer and that pointer is NULL) it will not be called. Due to
- * this, the \c () operator of the class \link Depends::Details::EmptyFunctor 
- * EmptyFunctor \endlink is never really called.
+ * actually a pointer and that pointer is NULL) it will not be called.
  *
  * Once we've determined that no circular path will exist if we create the
  * link, we can create the link. This means we add the target node to the
@@ -174,9 +181,8 @@
  * void link(iterator source, iterator target)
  * {
  * 	{
- * 		Details::ScopedFlag<node_type> scoped_flag(source.node(),
- * 			node_type::VISITED);
- * 		Details::NodeVisitor<node_type>()(target.node());
+ * 		Details::ScopedFlag<node_type> scoped_flag(source.node(), node_type::VISITED);
+ * 		target.node()->visit();
  * 	}
  * 	source.node().targets_.push_back(target.node());
  * }
@@ -266,7 +272,7 @@
  * \code
  * int main(int argc, char ** argv)
  * {
- * 	Depends::DAG<Target> dag;
+ * 	Depends::DAG< Target > dag;
  *
  * 	parse_cmdline(argc, argv);
  *
@@ -277,8 +283,8 @@
  * 		iter != targets.end();
  * 		++iter)
  * 	{
- * 		Prerequisits preqs = iter->prerequisits();
- * 		for (	Prerequisits::iterator preq_iter = preqs.begin();
+ * 		Prerequisites preqs = iter->prerequisites();
+ * 		for (	Prerequisites::iterator preq_iter = preqs.begin();
  * 			preq_iter != preqs.end();
  * 			++preq_iter)
  * 		{
@@ -288,7 +294,7 @@
  * 	std::foreach(dag.begin(); dag.end(); Action());
  * }
  * \endcode
- * in which Targets and Prerequisits are user-defined STL-compatible containers
+ * in which Targets and Prerequisites are user-defined STL-compatible containers
  * (or perhaps just vectors...).
  *
  * \section stl_compat Making the DAG an STL-Compatible Container
@@ -314,16 +320,14 @@
  * \link Depends::DAG::linked linked \endlink accessor which allows you to check 
  * whether two values in the container are already linked.
  *
- * \author Ronald Landheer-Cieslak \<blytkerchan at gmail dot com\>
+ * \author Ronald Landheer-Cieslak \<rlc (at) vlinder (dot) ca\>
  * */
 
 /** The library's main namespace.
  * All of the library's code can be found in the Depends namespace. In versions 
- * prior to version 1.0.0, this namespace was called \c rlc, but that name has
- * been deprecated. In order to still use it, define \c DEPENDS_USE_DEPRECATED_NAMES
- * to something non-zero. */
-namespace Depends
-{
+ * prior to version 1.0.0, this namespace was called \c rlc, but that name was
+ * deprecated over a decade ago, so it's no longer supported. */
+namespace Depends {
 	/** This namespace contains implementation details user code should know about.
 	 * In most cases, you won't need anything from this namespace yourself, but the
 	 * implementation relies on the classes in this namespace being visible. Hence,

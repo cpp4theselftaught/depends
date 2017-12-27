@@ -31,13 +31,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef  _depends_detail_serialization_h
-#define _depends_detail_serialization_h
+#ifndef depends_detail_serialization_hpp
+#define depends_detail_serialization_hpp
 
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/set.hpp>
 
-
 #endif
+

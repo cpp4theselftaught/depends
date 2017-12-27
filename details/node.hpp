@@ -33,45 +33,39 @@
  */
 /** \file Details/Node.h Definition of the DAG's nodes.
  * You will normally never want to include this file directly, as it is included by DAG.h */
-#ifndef _depends_details_node_h
-#define _depends_details_node_h
+#ifndef depends_details_node_hpp
+#define depends_details_node_hpp
+
+#include "../exceptions.hpp"
+#include "scopedflag.hpp"
 
 namespace Depends
 {
 	namespace Details
 	{
-		//! Helper functor that compares the values stored by a node.
-		template <typename NodeType>
-		struct ValueCompare
-		{
-			typedef typename NodeType::value_type value_type;
-
-			ValueCompare(const value_type & v) : val_(v) {}
-
-			bool operator()(const value_type & v) const { return val_ == v; }
-			bool operator()(const NodeType & n) const { return n.value_ == val_; }
-			bool operator()(const NodeType * n) const { return n->value_ == val_; }
-			
-			value_type val_;
-		};
-		
-		template <typename NodeType>
+		template < typename NodeType >
 		struct CompareNodesByContents
 		{
-			bool operator()(const NodeType & lhs, const NodeType & rhs)
+			bool operator()(NodeType const &lhs, NodeType const &rhs)
 			{
 				// we consider lhs < rhs to be true if
 				if (lhs < rhs)	// compare by scores
+				{
 					return true;
+				}
 				else if (lhs.value_ < rhs.value_) // compare by values
+				{
 					return true;
+				}
 				else
+				{
 					return std::lexicographical_compare(
-						boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(lhs.targets_.begin()),
-						boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(lhs.targets_.end()),
-						boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(rhs.targets_.begin()),
-						boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(rhs.targets_.end()),
-						*this);
+						  boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(lhs.targets_.begin())
+						, boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(lhs.targets_.end())
+						, boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(rhs.targets_.begin())
+						, boost::indirect_iterator< typename NodeType::targets_type::const_iterator >(rhs.targets_.end())
+						, *this);
+				}
 			}
 		};
 
@@ -81,35 +75,67 @@ namespace Depends
 		{
 			typedef ValueType value_type;
 			typedef ScoreType score_type;
-			typedef std::vector<Node*> targets_type;
+			typedef std::vector< Node* > targets_type;
 			
 			enum Flag { VISITED = 1 };
 
-			Node(const ValueType & v)
-				: value_(v),
-				  score_(1),
-				  flags_(0)
+			Node(ValueType const &v)
+				: value_(v)
+				, score_(1)
+				, flags_(0)
 			{
 			}
+			Node(Node const&) = default;
+			Node(Node&&) = default;
+			Node& operator=(Node const&) = default;
+			Node& operator=(Node&&) = default;
 
-			bool operator<(const Node & n) const
+			bool operator<(Node const &n) const
 			{
 				return score_ < n.score_;
 			}
 
-			bool operator==(const Node & rhs) const
+			bool operator==(Node const &rhs) const
 			{
 				return
 					(value_ == rhs.value_) &&
 					(score_ == rhs.score_) &&
 					targets_.size() == rhs.targets_.size() &&
 					std::equal(
-						boost::indirect_iterator< typename targets_type::const_iterator >(targets_.begin()),
-						boost::indirect_iterator< typename targets_type::const_iterator >(targets_.end()),
-						boost::indirect_iterator< typename targets_type::const_iterator >(rhs.targets_.begin())
+						  boost::indirect_iterator< typename targets_type::const_iterator >(targets_.begin())
+						, boost::indirect_iterator< typename targets_type::const_iterator >(targets_.end())
+						, boost::indirect_iterator< typename targets_type::const_iterator >(rhs.targets_.begin())
 					);
 			}
-			
+	
+			template < typename F, typename D >
+			void visit(F f, D data)
+			{
+				if (flags_ & VISITED)
+				{
+					throw CircularReference("Circular reference detected");
+				}
+				else
+				{ /* all is well so far */ }
+				if (f)
+				{
+					f(this, data);
+				}
+				else
+				{ /* no function */ }
+				{
+					ScopedFlag< Node > scoped_flag(this, VISITED);
+					for (auto target : targets_)
+					{
+						target->visit(f, data);
+					}
+				}
+			}
+			void visit()
+			{
+				visit([](Node*, int){}, 0);
+			}
+
 			targets_type targets_;
 			ValueType value_;
 			ScoreType score_;
@@ -117,13 +143,13 @@ namespace Depends
 
 		private :
 			Node()
-				: score_(0),
-				  flags_(0)
+				: score_(0)
+				, flags_(0)
 			{ /* only here for serialization */ }
 
 #if DEPENDS_SUPPORT_SERIALIZATION
 			template < typename Archive >
-			void serialize( Archive & ar, const unsigned int version )
+			void serialize(Archive & ar, unsigned int const version)
 			{
 				ar & boost::serialization::make_nvp("targets_", targets_)
 				   & boost::serialization::make_nvp("value_", value_)

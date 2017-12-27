@@ -1,5 +1,5 @@
 /* Depends: A generic dependency tracker in C++
- * Copyright (c) 2004-2007, Ronald Landheer-Cieslak
+ * Copyright (c) 2004-2017, Ronald Landheer-Cieslak
  * All rights reserved
  * 
  * This is free software. You may distribute it and/or modify it and
@@ -31,7 +31,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/** \file DAG.h The implementation of the Directed Acyclic Graph (Depends::DAG) class.
+/** \file dag.hpp The implementation of the Directed Acyclic Graph (Depends::DAG) class.
  * If you want to build your own dependency tracker using this library, you will want
  * to include this file and build upon the Depends::DAG class contained in it. By 
  * including this file, you will have access to the complete Depends::DAG class and
@@ -50,19 +50,13 @@ namespace boost { namespace serialization { class access; } }
 
 #include "details/iterator.hpp"
 #include "details/node.hpp"
-#include "details/circularreferenceexception.hpp"
 #include "details/scopedflag.hpp"
-#include "details/visitors.hpp"
-#include "details/sortpred.hpp"
-#include "details/unlinker.hpp"
+#include "exceptions.hpp"
 
-namespace Depends
-{
-	/** A DAG carries its name very well: it means day in dutch and most
-	 * dependencies are tracked at daytime. Such feeble attempts at humor
-	 * aside, a DAG is, in deed, a collection of directed edges between
-	 * nodes (or vertices, if you prefer) which, by definition, is
-	 * acyclic. This means that if there exists a path (of edges) that
+namespace Depends {
+	/** A DAG is a collection of directed edges between nodes (or 
+	 * vertices, if you prefer) which, by definition, is acyclic.
+	 * This means that if there exists a path (of edges) that
 	 * goes from node A to node B, there shall not be a path that goes
 	 * from node B to node A.
 	 *
@@ -75,7 +69,7 @@ namespace Depends
 	 *
 	 * As an example of use, there are two test cases that may be of
 	 * interest:
-	 * \dontinclude test.cc
+	 * \dontinclude tests/dag.cpp
 	 * First, a vector and a dag are both populated with integers ranging
 	 * from 0 to 99, inclusive. 
 	 * \skip test1
@@ -134,41 +128,18 @@ namespace Depends
 		typedef ValueType * pointer;
 		typedef const ValueType * const_pointer;
 		typedef unsigned long score_type;
-		typedef Details::Node<ValueType, score_type> node_type;
+		typedef Details::Node< ValueType, score_type > node_type;
 		typedef std::vector< node_type* > nodes_type;
-		typedef Details::Iterator<
-			ValueType, 
-			const ValueType &, 
-			const ValueType *, 
-			score_type, 
-			typename nodes_type::iterator> iterator;
-		typedef Details::Iterator<
-			ValueType, 
-			const ValueType &,
-			const ValueType *,
-			score_type,
-			typename nodes_type::iterator> const_iterator;
-		typedef Details::ReverseIterator<
-			ValueType,
-			const ValueType &,
-			const ValueType *,
-			score_type,
-			typename nodes_type::reverse_iterator> reverse_iterator;
-		typedef Details::ReverseIterator<
-			ValueType,
-			const ValueType &,
-			const ValueType *,
-			score_type,
-			typename nodes_type::reverse_iterator>
-				const_reverse_iterator;
-		typedef typename std::vector<node_type>::difference_type
-			difference_type;
-		typedef typename std::vector<node_type>::size_type size_type;
+		typedef Details::Iterator< ValueType, const ValueType &, const ValueType *, score_type, typename nodes_type::iterator > iterator;
+		typedef Details::Iterator< ValueType, const ValueType &, const ValueType *, score_type, typename nodes_type::iterator > const_iterator;
+		typedef std::reverse_iterator< iterator > reverse_iterator;
+		typedef std::reverse_iterator< const_iterator > const_reverse_iterator;
+		typedef typename std::vector< node_type >::difference_type difference_type;
+		typedef typename std::vector< node_type >::size_type size_type;
 
 		/** This exception is thrown in case a new link creates a
 		 * circular reference */
-		typedef Details::CircularReferenceException
-			circular_reference_exception;
+		typedef CircularReference circular_reference_exception;
 
 		//! DefaultConstructible
 		DAG()
@@ -200,8 +171,10 @@ namespace Depends
 
 		~DAG()
 		{
-			for (typename nodes_type::iterator iter = nodes_.begin(); iter != nodes_.end(); ++iter)
-				delete *iter;
+			for (auto node : nodes_)
+			{
+				delete node;
+			}
 		}
 	
 		//! Get a bidirectional iterator to the beginning of the container
@@ -277,13 +250,15 @@ namespace Depends
 		 *         happen if the value is already in the container). */
 		std::pair<iterator, bool> insert(const value_type & val)
 		{
-			if (std::find_if(nodes_.begin(), nodes_.end(), Details::ValueCompare<node_type>(val)) == nodes_.end())
+			if (std::find_if(nodes_.begin(), nodes_.end(), [&val](auto node){ return *node == val; }) == nodes_.end())
 			{
 				nodes_.insert(nodes_.begin(), new node_type(val));
 				return std::make_pair(begin(), true);
 			}
 			else
+			{
 				return std::make_pair(end(), false);
+			}
 		}
 
 		/** Insert a range of values into the container, skipping anything that would be a duplicate.
@@ -293,7 +268,9 @@ namespace Depends
 		void insert(InputIterator first, InputIterator last)
 		{
 			for ( ; first != last; ++first)
+			{
 				insert(*first);
+			}
 		}
 	
 		/** Link two values (nodes) at the give locations
@@ -306,15 +283,13 @@ namespace Depends
 		{
 			{
 				Details::ScopedFlag<node_type> scoped_flag(source.node(), node_type::VISITED);
-				Details::NodeVisitor<node_type>()(target.node());
+				target.node()->visit();
 			}
 			source.node()->targets_.push_back(target.node());
 
-			// GCC 3.3 doesn't like it when I don't use a local variable for this functor..
-			Details::IncScoreFunctor dag_node_inc_score_functor;
-			Details::NodeVisitor<node_type, Details::IncScoreFunctor, score_type>(dag_node_inc_score_functor, source.node()->score_)(target.node());
+			target.node()->visit([](node_type *node, score_type score){ node->score_ += score; }, source.node()->score_);
 
-			std::sort(nodes_.begin(), nodes_.end(), Details::SortPred<node_type>());
+			std::sort(nodes_.begin(), nodes_.end(), [](auto lhs, auto rhs){ return lhs->score_ < rhs->score_; });
 		}
 
 		/** Link a node at a given location with a given value
@@ -368,7 +343,7 @@ namespace Depends
 			try
 			{
 				Details::ScopedFlag<node_type> scoped_flag(target.node(), node_type::VISITED);
-				Details::NodeVisitor<node_type>()(source.node());
+				source.node()->visit();
 			}
 			catch (circular_reference_exception &)
 			{
@@ -415,13 +390,15 @@ namespace Depends
 			bool rv(true);
 			typename node_type::targets_type::iterator where(std::find(source.node()->targets_.begin(), source.node()->targets_.end(), target.node()));
 			if (where != source.node()->targets_.end())
+			{
 				source.node()->targets_.erase(where);
+			}
 			else
+			{
 				rv = false;
+			}
 
-			// GCC 3.3 doesn't like it when I don't use a local variable for this functor..
-			Details::DecScoreFunctor dag_node_dec_score_functor;
-			Details::NodeVisitor<node_type, Details::DecScoreFunctor, score_type>(dag_node_dec_score_functor, source.node()->score_)(target.node());
+			target.node()->visit([](node_type *node, score_type score){ node->score_ -= score; }, source.node()->score_);
 
 			std::sort(nodes_.begin(), nodes_.end());
 
@@ -465,8 +442,30 @@ namespace Depends
 		iterator erase(iterator where)
 		{
 			while (!where.node()->targets_.empty())
+			{
 				unlink(where, (where.node()->targets_[0])->value_);
-			std::for_each(nodes_.begin(), nodes_.end(), Details::Unlinker<node_type>(where.node()));
+			}
+			auto target(where.node());
+			std::for_each(
+				  nodes_.begin()
+				, nodes_.end()
+				, [target](auto *node) {
+						typedef typename std::remove_reference< decltype(*node) >::type NodeType;
+						typedef typename NodeType::targets_type Targets;
+						typename Targets::iterator end(node->targets_.end());
+						for (typename Targets::iterator which(node->targets_.begin()); which != end; )
+						{
+							if (*which == target)
+							{
+								which = node->targets_.erase(which);
+							}
+							else
+							{
+								++which;
+							}
+						}
+					}
+				);
 
 			delete where.node();
 			typename nodes_type::iterator whence(nodes_.erase(where.iter_));
@@ -481,10 +480,10 @@ namespace Depends
 		 * \param end iterator pointing one-past-the-end of the range to delete */
 		iterator erase(iterator begin, iterator end)
 		{
-			iterator retval = begin;
-			
 			for (iterator where(begin); where != end; ++where)
+			{
 				delete where.node();
+			}
 			return iterator(nodes_.erase(begin.iter_, end.iter_));
 		}
 
@@ -512,16 +511,6 @@ namespace Depends
 #endif
 	};
 }
-
-#if DEPENDS_USE_DEPRECATED_NAMES
-namespace rlc
-{
-	using namespace Depends;
-	template < typename ValueType >
-	struct dag : public Depends::DAG< ValueType >
-	{ /* empty veneer */ };
-}
-#endif
 
 #endif
 
