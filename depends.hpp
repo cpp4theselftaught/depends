@@ -31,7 +31,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/** \file Depends.h A simple, generic dependency tracker. */
+/** \file depends.hpp A simple, generic dependency tracker. */
 #ifndef depends_depends_hpp
 #define depends_depends_hpp
 
@@ -70,7 +70,7 @@ namespace Depends
 	 * selected item. The following code creates a dependency tracker containing three 
 	 * integer values and defines '0' as a prerequisite of '1' (and thus defines '1'
 	 * as a dependant of '0')
-	 * \dontinclude test2.cc
+	 * \dontinclude tests/depends.cpp
 	 * \skip test8
 	 * \until }
 	 * \until }
@@ -318,22 +318,28 @@ namespace Depends
 		 *        prerequisites will be returned.  */
 		std::set< value_type > getPrerequisites(bool all = false) const
 		{
+			typedef typename DAG< pointer >::node_type node_type;
+
 			std::set< value_type > retval;
 			typename DAG< pointer >::const_iterator selected(std::find(prerequisites_.begin(), prerequisites_.end(), getPointer(*selected_)));
-			const typename DAG< pointer >::node_type * selected_node(selected.node());
+			node_type const *selected_node(selected.node());
 			if (all)
 			{
-				typedef Details::NodeVisitor< typename DAG< pointer >::node_type, Details::RetrieveTargets, std::set< pointer > * > Visitor;
+				auto retrieveTargets = [](node_type *node, std::set< pointer > *data){
+					data->insert(node->value_);
+				};
+
 				std::set< pointer > temp;
-				Visitor visitor(Details::RetrieveTargets(), &temp);
-				std::for_each(
-					selected_node->targets_.begin(),
-					selected_node->targets_.end(),
-					visitor);
+				for (auto target : selected_node->targets_)
+				{
+					target->visit(retrieveTargets, &temp);
+				}
+
 				std::copy(
-					boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.begin()),
-					boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.end()),
-					std::inserter(retval, retval.begin()));
+					  boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.begin())
+					, boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.end())
+					, std::inserter(retval, retval.begin())
+					);
 			}
 			else
 			{
@@ -385,22 +391,28 @@ namespace Depends
 		*        dependants will be returned.  */
 		std::set< value_type > getDependants(bool all = false) const
 		{
+			typedef typename DAG< pointer >::node_type node_type;
+
 			std::set< value_type > retval;
 			typename DAG< pointer >::const_iterator selected(std::find(dependants_.begin(), dependants_.end(), getPointer(*selected_)));
-			const typename DAG< pointer >::node_type * selected_node(selected.node());
+			node_type const *selected_node(selected.node());
 			if (all)
 			{
-				typedef Details::NodeVisitor< typename DAG< pointer >::node_type, Details::RetrieveTargets, std::set< pointer > * > Visitor;
+				auto retrieveTargets = [](node_type *node, std::set< pointer > *data){
+					data->insert(node->value_);
+				};
+
 				std::set< pointer > temp;
-				Visitor visitor(Details::RetrieveTargets(), &temp);
-				std::for_each(
-					selected_node->targets_.begin(),
-					selected_node->targets_.end(),
-					visitor);
+				for (auto target : selected_node->targets_)
+				{
+					target->visit(retrieveTargets, &temp);
+				}
+
 				std::copy(
-					boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.begin()),
-					boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.end()),
-					std::inserter(retval, retval.begin()));
+					  boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.begin())
+					, boost::indirect_iterator< typename std::set< pointer >::const_iterator >(temp.end())
+					, std::inserter(retval, retval.begin())
+					);
 			}
 			else
 			{

@@ -1,5 +1,5 @@
 /* Depends: A generic dependency tracker in C++
- * Copyright (c) 2004-2007, Ronald Landheer-Cieslak
+ * Copyright (c) 2004-2017, Ronald Landheer-Cieslak
  * All rights reserved
  * 
  * This is free software. You may distribute it and/or modify it and
@@ -31,10 +31,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/** \file Details/Iterator.h Definition of the DAG's iterators.
- * You will normally never want to include this file directly, as it is included by DAG.h */
-#ifndef _depends_details_iterator_h
-#define _depends_details_iterator_h
+/** \file details/iterator.hpp Definition of the DAG's iterators.
+ * You will normally never want to include this file directly, as it is included by dag.hpp */
+#ifndef depends_details_iterator_hpp
+#define depends_details_iterator_hpp
 
 #include <iterator>
 #include "node.hpp"
@@ -43,66 +43,35 @@ namespace Depends
 {
 	namespace Details
 	{
-		//! It's a tag, folks!
-		struct reverse_tag {};
-		
-		//! Base of the bidirectional iterators for the DAG
-		template <class ValueType, typename ReferenceType, typename PointerType, typename ScoreType, typename IteratorType>
-		struct IteratorBase : public std::iterator<std::forward_iterator_tag, ValueType, ptrdiff_t, PointerType, ReferenceType>
+		//! bidirectional iterators for the DAG
+		template < class ValueType, typename ReferenceType, typename PointerType, typename ScoreType, typename IteratorType >
+		struct Iterator : public std::iterator< std::forward_iterator_tag, ValueType, ptrdiff_t, PointerType, ReferenceType >
 		{
-			typedef IteratorBase<ValueType, ValueType&, ValueType*, ScoreType, IteratorType> iterator;
-			typedef IteratorBase<ValueType, const ValueType&, const ValueType*, ScoreType, IteratorType> const_iterator;
-			typedef Node<ValueType, ScoreType> node_type;
+			typedef Iterator< ValueType, ValueType&, ValueType*, ScoreType, IteratorType > iterator;
+			typedef Iterator< ValueType, ValueType const&, ValueType const*, ScoreType, IteratorType > const_iterator;
+			typedef Node< ValueType, ScoreType > node_type;
 			
-			IteratorBase(const IteratorType & i) : iter_(i) {}
-			IteratorBase(const iterator & i) : iter_(i.iter_) {}
+			Iterator(IteratorType const&i) : iter_(i) {}
+			Iterator(IteratorType &&i) : iter_(std::move(i)) {}
+			Iterator(iterator const &i) : iter_(i.iter_) {}
+			Iterator(iterator &&i) : iter_(std::move(i.iter_)) {}
 
 			ReferenceType operator*() const { return (*iter_)->value_; }
 			PointerType operator->() const { return &((*iter_)->value_); }
 
-			bool operator==(const IteratorBase & i) const { return iter_ == i.iter_; }
-			bool operator!=(const IteratorBase & i) const { return iter_ != i.iter_; }
+			bool operator==(const Iterator &i) const { return iter_ == i.iter_; }
+			bool operator!=(const Iterator &i) const { return iter_ != i.iter_; }
 
-			const node_type * node() const { return *iter_; }
-			node_type * node() { return *iter_; }
+			node_type const* node() const { return *iter_; }
+			node_type* node() { return *iter_; }
+
+			Iterator& operator++() { ++iter_; return *this; };
+			Iterator operator++(int) { Iterator tmp = *this; ++iter_; return tmp; };
+
+			Iterator& operator--() { --iter_; return *this; };
+			Iterator operator--(int) { Iterator tmp = *this; --iter_; return tmp; };
 
 			IteratorType iter_;
-		};
-
-		//! A forward-moving bidirectional iterator for the DAG
-		template <class ValueType, typename ReferenceType, typename PointerType, typename ScoreType, typename IteratorType>
-		struct Iterator : public IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>
-		{
-			typedef Iterator<ValueType, ValueType&, ValueType*, ScoreType, IteratorType> iterator;
-			typedef Iterator<ValueType, const ValueType&, const ValueType*, ScoreType, IteratorType> const_iterator;
-			typedef IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType> super;
-			
-			Iterator(const IteratorType & i) : IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>(i) {}
-			Iterator(const iterator & i) : IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>(i) {}
-
-			Iterator & operator++() { ++(super::iter_); return *this; };
-			Iterator operator++(int) { Iterator tmp = *this; ++(super::iter_); return tmp; };
-
-			Iterator & operator--() { --(super::iter_); return *this; };
-			Iterator operator--(int) { Iterator tmp = *this; --(super::iter_); return tmp; };
-		};
-
-		//! A backward-moving bidirectional iterator for the DAG
-		template <class ValueType, typename ReferenceType, typename PointerType, typename ScoreType, typename IteratorType>
-		struct ReverseIterator : public IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>
-		{
-			typedef ReverseIterator<ValueType, ValueType&, ValueType*, ScoreType, IteratorType> iterator;
-			typedef ReverseIterator<ValueType, const ValueType&, const ValueType*, ScoreType, IteratorType> const_iterator;
-			typedef IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType> super;
-			
-			ReverseIterator(const IteratorType & i) : IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>(i) {}
-			ReverseIterator(const iterator & i) : IteratorBase<ValueType, ReferenceType, PointerType, ScoreType, IteratorType>(i) {}
-
-			ReverseIterator & operator++() { ++(super::iter_); return *this; };
-			ReverseIterator operator++(int) { ReverseIterator tmp = *this; ++(super::iter_); return tmp; };
-
-			ReverseIterator & operator--() { --(super::iter_); return *this; };
-			ReverseIterator operator--(int) { ReverseIterator tmp = *this; --(super::iter_); return tmp; };
 		};
 	}
 }

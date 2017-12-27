@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.6)
 project(depends)
+include(${CMAKE_SOURCE_DIR}/cmake/settings.cmake)
 enable_testing()
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED 14)
+
+add_subdirectory(exceptions)
 
 option(ENABLE_SERIALIZATION "Enable serialization using Boost.Serialization" OFF)
 
