@@ -17,6 +17,8 @@ script:
    - make test
 
 matrix:
+  allow_failures:
+    - env: EXPECT_FAIL=1
   include:
     - os: linux
       addons:
@@ -116,7 +118,7 @@ matrix:
             - cmake-data
             - cmake
       env:
-        - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
+        - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8 && EXPECT_FAIL=1"
 
     - os: linux
       addons:
