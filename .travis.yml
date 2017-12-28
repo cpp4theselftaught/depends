@@ -17,10 +17,9 @@ script:
    - make test
 env:
 matrix:
-  allow_failures:
-    - env: EXPECT_FAIL=1
   include:
     - os: linux
+      compiler: gcc
       addons:
         apt:
           sources:
@@ -34,6 +33,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
     - os: linux
+      compiler: gcc
       addons:
         apt:
           sources:
@@ -48,6 +48,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
     - os: linux
+      compiler: gcc
       addons:
         apt:
           sources:
@@ -62,6 +63,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
     - os: linux
+      compiler: gcc
       addons:
         apt:
           sources:
@@ -105,37 +107,35 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang-3.7 && CXX=clang++-3.7"
 
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports
-          packages:
-            - clang-3.8
-            - libboost-all-dev
-            - cmake-data
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
-        - EXPECT_FAIL=1
+   #- os: linux
+   #   addons:
+   #     apt:
+   #       sources:
+   #         - ubuntu-toolchain-r-test
+   #         - llvm-toolchain-precise-3.8
+   #         - george-edison55-precise-backports
+   #       packages:
+   #         - clang-3.8
+   #         - libboost-all-dev
+   #         - cmake-data
+   #         - cmake
+   #   env:
+   #     - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
 
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-3.9
-            - george-edison55-precise-backports
-          packages:
-            - clang-3.9
-            - libboost-all-dev
-            - cmake-data
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
-        - EXPECT_FAIL=1
+   # - os: linux
+   #   addons:
+   #     apt:
+   #       sources:
+   #         - ubuntu-toolchain-r-test
+   #         - llvm-toolchain-trusty-3.9
+   #         - george-edison55-precise-backports
+   #       packages:
+   #         - clang-3.9
+   #         - libboost-all-dev
+   #         - cmake-data
+   #         - cmake
+   #   env:
+   #     - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
 
     - os: linux
       addons:
@@ -166,6 +166,5 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
-
 before_install:
   - eval "${MATRIX_EVAL}"
