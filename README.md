@@ -4,20 +4,20 @@ productivity. I like mixing these two purposes whenever I can, because I
 believe it to be very important to continue learning to be productive, and to
 be productive to be successful in software development.
 
-##The educational purpose of Depends
+## The educational purpose of Depends
 
 Much of Depends is its documentation: it explains in much detail how the
 dependency tracker is implemented and should be clear enough for any programmer
 to understand both how it is implemented and how to implement one themselves.
 
-##The productivity purpose of Depends
+## The productivity purpose of Depends
 
 The Depends class implements a complete dependency tracker and an associative
 container for any given value-type and can be used as-is without any real
 knowledge of how it is implemented. From a productivity point of view, the
 extra documentation may be a plus, but is certainly not necessary.
 
-##When was Depends created?
+## When was Depends created?
 
 The very first version of Depends was created for the Jail-Ust project, which
 is now defunct. The dependency tracker, however, took on a life of its own and 
@@ -31,7 +31,7 @@ continued to maintain a commercial version until mid-2015, when it announced
 it would cease commercial support -- and when I decided to put the latest
 public version on GitHub.
 
-##Why was Depends created?
+## Why was Depends created?
 
 For one of the experiments I did on Jail, not all of which are public, I
 needed a dependency tracker to track the dependencies between singleton
