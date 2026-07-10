@@ -1,0 +1,47 @@
+---
+name: ci_validate_cmake
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - { cc: gcc, cxx: g++ }
+          - { cc: clang, cxx: clang++ }
+    runs-on: ubuntu-latest
+    env:
+      CC: ${{ matrix.compiler.cc }}
+      CXX: ${{ matrix.compiler.cxx }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev
+
+      - name: Configure
+        run: |
+          mkdir -p .build
+          cd .build
+          cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+      - name: Build
+        run: cmake --build .build -- -j"$(nproc)"
+
+      - name: Test
+        working-directory: .build
+        run: ctest --output-on-failure
